@@ -1,0 +1,64 @@
+import os
+import pickle
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
+
+# 1. Synthetic dataset generate
+def generate_synthetic_data(num_samples=1000):
+    np.random.seed(42)
+
+    data = {
+        "Nitrogen": np.random.randint(0, 140, num_samples),
+        "Phosphorus": np.random.randint(5, 145, num_samples),
+        "Potassium": np.random.randint(5, 205, num_samples),
+        "Temperature": np.random.uniform(10, 40, num_samples),
+        "Humidity": np.random.uniform(20, 100, num_samples),
+        "pH": np.random.uniform(4.5, 9.0, num_samples),
+        "Rainfall": np.random.uniform(20, 300, num_samples),
+    }
+
+    df = pd.DataFrame(data)
+
+    # simple rule-based label (demo purpose)
+    conditions = []
+    for i in range(num_samples):
+        if df["Rainfall"][i] > 200:
+            conditions.append("Rice")
+        elif df["Nitrogen"][i] > 100:
+            conditions.append("Wheat")
+        else:
+            conditions.append("Maize")
+
+    df["Crop"] = conditions
+
+    return df
+
+
+# 2. Train and save model
+def train_and_save():
+    df = generate_synthetic_data(1500)
+
+    X = df[
+        ["Nitrogen", "Phosphorus", "Potassium",
+         "Temperature", "Humidity", "pH", "Rainfall"]
+    ]
+    y = df["Crop"]
+
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X, y)
+
+    # folder ensure
+    os.makedirs("ml_models", exist_ok=True)
+
+    # save model
+    with open("ml_models/crop_prediction_model.pkl", "wb") as f:
+        pickle.dump(model, f)
+
+    print("Model saved successfully!")
+
+
+# run training
+if __name__ == "__main__":
+    train_and_save()
